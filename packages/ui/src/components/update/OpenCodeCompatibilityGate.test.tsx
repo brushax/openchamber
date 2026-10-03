@@ -259,10 +259,7 @@ const desktopReadiness = (invoke: () => Promise<boolean>) => {
     __OPENCHAMBER_ELECTRON__: { configurable: true, value: { runtime: 'electron' } },
     __OPENCHAMBER_LOCAL_ORIGIN__: { configurable: true, value: 'http://127.0.0.1:3901' },
     __OPENCHAMBER_API_BASE_URL__: { configurable: true, writable: true, value: 'http://127.0.0.1:3901' },
-    __OPENCHAMBER_DESKTOP__: { configurable: true, value: { invoke: (cmd: string) => {
-      if (cmd === 'desktop_managed_opencode_compatible') return invoke();
-      return Promise.resolve(null);
-    } } },
+    __OPENCHAMBER_DESKTOP__: { configurable: true, value: { invoke } },
   });
 };
 
