@@ -279,10 +279,13 @@ describe('session goal tick and subagents', () => {
       childPages: [[child('ses_child_1')]],
     });
     const seam = wired({ openchamber: { goal: activeGoal() } });
-    const generate = vi.fn(async () => ({ text: '{"verdict":"complete","note":"done"}' }));
+    const generate = vi.fn(async () => ({ text: smallModelSays({ all_done: true }) }));
     const { runtime } = makeRuntime({
       ...seam,
-      getSmallModelService: async () => ({ generateSmallModelText: generate }),
+      getSmallModelService: async () => ({
+        describeSmallModel: async () => ({ inputCharBudget: 20_000 }),
+        generateSmallModelText: generate,
+      }),
       idleQuietMs: 5,
     });
 
@@ -293,8 +296,10 @@ describe('session goal tick and subagents', () => {
     expect(generate).not.toHaveBeenCalled();
 
     delete active.ses_child_1;
-    await vi.waitFor(() => expect(generate).toHaveBeenCalledTimes(1));
-    expect(seam.persistSessionGoal.mock.calls.at(-1)[2]).toMatchObject({ status: 'complete', note: 'done' });
+    await vi.waitFor(() => {
+      expect(generate).toHaveBeenCalledTimes(1);
+      expect(seam.persistSessionGoal.mock.calls.at(-1)[2]).toMatchObject({ status: 'complete' });
+    });
   });
 
   it('audits once every subagent is idle', async () => {
