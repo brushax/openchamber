@@ -97,10 +97,5 @@ export const resolveGoogleAuthSources = (auth) => {
     sources.push(geminiAuth);
   }
 
-  const antigravityAuth = resolveAntigravityAuth();
-  if (antigravityAuth) {
-    sources.push(antigravityAuth);
-  }
-
   return sources;
 };
