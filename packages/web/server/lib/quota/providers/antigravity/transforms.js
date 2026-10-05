@@ -85,7 +85,7 @@ export const transformSummary = (summaryPayload) => {
     });
   }
 
-  // 顶层概览默认使用 Gemini 组的双层配额（或第一个可用组）
+  // Top-level overview defaults to the Gemini group's dual-layer quota (or the first available group)
   const primaryGroup = modelGroupWindows.find((g) => g.groupType === 'gemini') ?? modelGroupWindows[0];
   if (primaryGroup) {
     Object.assign(topWindows, primaryGroup.windows);
@@ -134,7 +134,7 @@ export const transformModels = (modelsPayload, modelGroupWindows = []) => {
 
       transformed[name] = { windows: reorderedWindows };
     } else {
-      // 兜底：如果 retrieveUserQuotaSummary 未返回，回退到 fetchAvailableModels 自带的单窗口 quotaInfo
+      // Fallback: if retrieveUserQuotaSummary did not return, fall back to the single-window quotaInfo from fetchAvailableModels
       const remainingFraction = toNumber(modelData?.quotaInfo?.remainingFraction);
       const remainingPercent = remainingFraction !== null
         ? Math.round(remainingFraction * 100)
