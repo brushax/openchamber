@@ -407,8 +407,14 @@ export const registerOpenCodeRoutes = (app, dependencies) => {
           const providerEntity = rawProvider ? toProviderEntity(rawProvider) : null;
           storedBaseURL = providerEntity?.settings?.baseURL;
           if (!storedApiKey) {
-            storedApiKey = providerEntity?.settings?.apiKey
-              || (providerEntity?.env?.[0] ? `{env:${providerEntity.env[0]}}` : null);
+            // OpenCode tries each `env` name in order, so pick the first one
+            // that is set; when none is, keep the first so discovery can name
+            // it in the error instead of failing as an anonymous 401. This
+            // reads the server's environment: a variable that exists only in
+            // the managed OpenCode launch environment (Settings user env) is
+            // not visible here.
+            const envName = providerEntity?.env?.find((name) => process.env[name]) ?? providerEntity?.env?.[0];
+            storedApiKey = providerEntity?.settings?.apiKey || (envName ? `{env:${envName}}` : null);
           }
         } catch {
           storedApiKey = null;
