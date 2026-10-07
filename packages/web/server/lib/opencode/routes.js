@@ -9,7 +9,7 @@ import {
 import { getClaudeCliAuthStatus } from './claude-cli-auth.js';
 import { OPENCODE_CONFIG_DIR, readConfigLayers } from './shared.js';
 import { settingsSurfaceOf } from './settings-files.js';
-import { parseWebSearchSelection } from './config-v2.js';
+import { parseWebSearchSelection, readSectionEntry, toProviderEntity } from './config-v2.js';
 import { getWebSearchSource, setWarmingEnabled, setWebSearchSelection } from './websearch-config.js';
 import {
   CREDENTIAL_LIST_ERROR,
@@ -403,7 +403,13 @@ export const registerOpenCodeRoutes = (app, dependencies) => {
           const { getProviderAuth } = await getAuthLibrary();
           const storedAuth = await getProviderAuth(providerID);
           storedApiKey = storedAuth?.type === 'api' && typeof storedAuth.key === 'string' ? storedAuth.key : null;
-          storedBaseURL = readConfigLayers().mergedConfig?.provider?.[providerID]?.options?.baseURL;
+          const { value: rawProvider } = readSectionEntry(readConfigLayers().mergedConfig, 'providers', providerID);
+          const providerEntity = rawProvider ? toProviderEntity(rawProvider) : null;
+          storedBaseURL = providerEntity?.settings?.baseURL;
+          if (!storedApiKey) {
+            storedApiKey = providerEntity?.settings?.apiKey
+              || (providerEntity?.env?.[0] ? `{env:${providerEntity.env[0]}}` : null);
+          }
         } catch {
           storedApiKey = null;
         }
