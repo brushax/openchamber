@@ -304,9 +304,16 @@ const GOOGLE_WEEKLY_WINDOW_SECONDS = 7 * 24 * 60 * 60;
 const GOOGLE_PRIMARY_ENDPOINT = 'https://cloudcode-pa.googleapis.com';
 
 const GOOGLE_ENDPOINTS = [
-  'https://daily-cloudcode-pa.googleapis.com',
   'https://daily-cloudcode-pa.sandbox.googleapis.com',
   'https://autopush-cloudcode-pa.sandbox.googleapis.com',
+  GOOGLE_PRIMARY_ENDPOINT,
+];
+
+// Antigravity reaches the production daily host first and never the autopush
+// sandbox; Gemini CLI keeps the endpoint order above.
+const ANTIGRAVITY_ENDPOINTS = [
+  'https://daily-cloudcode-pa.googleapis.com',
+  'https://daily-cloudcode-pa.sandbox.googleapis.com',
   GOOGLE_PRIMARY_ENDPOINT,
 ];
 
@@ -1191,10 +1198,14 @@ const fetchGoogleQuotaBuckets = async (accessToken: string, projectId?: string) 
   }
 };
 
-const fetchGoogleModels = async (accessToken: string, projectId?: string) => {
+const fetchGoogleModels = async (
+  accessToken: string,
+  projectId?: string,
+  endpoints: readonly string[] = GOOGLE_ENDPOINTS,
+) => {
   const body = projectId ? { project: projectId } : {};
 
-  for (const endpoint of GOOGLE_ENDPOINTS) {
+  for (const endpoint of endpoints) {
     const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
     const timeout = controller ? setTimeout(() => controller.abort(), 15000) : null;
     try {
@@ -1372,7 +1383,7 @@ type QuotaSummaryPayload = {
 const fetchAntigravityQuotaSummary = async (accessToken: string, projectId?: string): Promise<QuotaSummaryPayload | null> => {
   const body = projectId ? { project: projectId } : {};
 
-  for (const endpoint of GOOGLE_ENDPOINTS) {
+  for (const endpoint of ANTIGRAVITY_ENDPOINTS) {
     const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
     const timeout = controller ? setTimeout(() => controller.abort(), 15000) : null;
     try {
@@ -1430,10 +1441,9 @@ const fetchAntigravityQuota = async (): Promise<ProviderResult> => {
 
   const [summaryPayload, rawModelsPayload] = await Promise.all([
     fetchAntigravityQuotaSummary(accessToken, projectId),
-    fetchGoogleModels(accessToken, projectId),
+    fetchGoogleModels(accessToken, projectId, ANTIGRAVITY_ENDPOINTS),
   ]);
 
-  const topWindows: Record<string, UsageWindow> = {};
   const modelGroupWindows: Array<{
     groupType: 'gemini' | '3p';
     windows: Record<string, UsageWindow>;
@@ -1487,11 +1497,6 @@ const fetchAntigravityQuota = async (): Promise<ProviderResult> => {
       bucket5h,
       bucketWeekly,
     });
-  }
-
-  const primaryGroup = modelGroupWindows.find((g) => g.groupType === 'gemini') ?? modelGroupWindows[0];
-  if (primaryGroup) {
-    Object.assign(topWindows, primaryGroup.windows);
   }
 
   const models: Record<string, ProviderUsage> = {};
@@ -1552,7 +1557,7 @@ const fetchAntigravityQuota = async (): Promise<ProviderResult> => {
     }
   }
 
-  if (!Object.keys(models).length && !Object.keys(topWindows).length) {
+  if (!Object.keys(models).length) {
     return buildResult({
       providerId: 'antigravity',
       providerName: 'Antigravity',
@@ -1568,7 +1573,7 @@ const fetchAntigravityQuota = async (): Promise<ProviderResult> => {
     ok: true,
     configured: true,
     usage: {
-      windows: topWindows,
+      windows: {},
       models: Object.keys(models).length ? models : undefined,
     },
   });

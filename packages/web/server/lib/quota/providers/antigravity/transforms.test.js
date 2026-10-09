@@ -93,16 +93,13 @@ describe('Antigravity transforms', () => {
     expect(fiveHourBucket.window.usedPercent).toBe(0);
   });
 
-  it('transforms summary payload and surfaces both 5h and weekly top-level windows', () => {
-    const { topWindows, modelGroupWindows } = transformSummary(MOCK_SUMMARY_PAYLOAD);
-
-    expect(topWindows['5h']).toBeDefined();
-    expect(topWindows.weekly).toBeDefined();
-    expect(topWindows['5h'].remainingPercent).toBe(100);
-    expect(topWindows.weekly.remainingPercent).toBe(59);
+  it('parses summary groups into Gemini and 3P model-group windows', () => {
+    const { modelGroupWindows } = transformSummary(MOCK_SUMMARY_PAYLOAD);
 
     expect(modelGroupWindows).toHaveLength(2);
     expect(modelGroupWindows[0].groupType).toBe('gemini');
+    expect(modelGroupWindows[0].windows['5h'].remainingPercent).toBe(100);
+    expect(modelGroupWindows[0].windows.weekly.remainingPercent).toBe(59);
     expect(modelGroupWindows[1].groupType).toBe('3p');
   });
 

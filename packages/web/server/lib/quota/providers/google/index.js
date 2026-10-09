@@ -5,17 +5,11 @@ import {
   resolveGoogleOAuthClient,
   DEFAULT_PROJECT_ID
 } from './auth.js';
-import {
-  transformQuotaBucket,
-  transformModelData,
-  transformQuotaSummary,
-  applySummaryToModels
-} from './transforms.js';
+import { transformQuotaBucket, transformModelData } from './transforms.js';
 import {
   refreshGoogleAccessToken,
   fetchGoogleQuotaBuckets,
-  fetchGoogleModels,
-  fetchGoogleQuotaSummary
+  fetchGoogleModels
 } from './api.js';
 
 export { resolveGoogleAuthSources } from './auth.js';
@@ -39,7 +33,6 @@ export const fetchGoogleQuota = async () => {
   }
 
   const models = {};
-  const topWindows = {};
   const sourceErrors = [];
 
   for (const source of authSources) {
@@ -85,13 +78,6 @@ export const fetchGoogleQuota = async () => {
       }
     }
 
-    const summaryPayload = await fetchGoogleQuotaSummary(accessToken, projectId);
-    if (summaryPayload) {
-      const { topWindows: summaryTopWindows, modelGroupWindows } = transformQuotaSummary(summaryPayload);
-      Object.assign(topWindows, summaryTopWindows);
-      applySummaryToModels(models, modelGroupWindows);
-    }
-
     if (!mergedAnyModel) {
       sourceErrors.push(`${source.sourceLabel}: Failed to fetch models`);
     }
@@ -113,7 +99,7 @@ export const fetchGoogleQuota = async () => {
     ok: true,
     configured: true,
     usage: {
-      windows: topWindows,
+      windows: {},
       models: Object.keys(models).length ? models : undefined
     }
   });

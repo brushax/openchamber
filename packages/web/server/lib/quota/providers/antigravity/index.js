@@ -51,10 +51,10 @@ export const fetchQuota = async () => {
     fetchAntigravityModels(accessToken, projectId)
   ]);
 
-  const { topWindows, modelGroupWindows } = transformSummary(summaryPayload);
+  const { modelGroupWindows } = transformSummary(summaryPayload);
   const models = transformModels(modelsPayload, modelGroupWindows);
 
-  if (!Object.keys(models).length && !Object.keys(topWindows).length) {
+  if (!Object.keys(models).length) {
     return buildResult({
       providerId,
       providerName,
@@ -70,7 +70,7 @@ export const fetchQuota = async () => {
     ok: true,
     configured: true,
     usage: {
-      windows: topWindows,
+      windows: {},
       models: Object.keys(models).length ? models : undefined
     }
   });

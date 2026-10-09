@@ -29,14 +29,8 @@ const GOOGLE_MODEL_FAMILIES: ModelFamily[] = [
   {
     id: 'gemini-auth',
     label: 'Gemini',
-    matcher: (modelName) => modelName.startsWith('gemini/') || modelName.startsWith('gemini-'),
+    matcher: (modelName) => modelName.startsWith('gemini/'),
     order: 1,
-  },
-  {
-    id: 'antigravity-auth',
-    label: 'Antigravity',
-    matcher: (modelName) => modelName.startsWith('antigravity/'),
-    order: 2,
   },
 ];
 

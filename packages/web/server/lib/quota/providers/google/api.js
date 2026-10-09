@@ -8,7 +8,6 @@
 const GOOGLE_PRIMARY_ENDPOINT = 'https://cloudcode-pa.googleapis.com';
 
 const GOOGLE_ENDPOINTS = [
-  'https://daily-cloudcode-pa.googleapis.com',
   'https://daily-cloudcode-pa.sandbox.googleapis.com',
   'https://autopush-cloudcode-pa.sandbox.googleapis.com',
   GOOGLE_PRIMARY_ENDPOINT
@@ -71,33 +70,6 @@ export const fetchGoogleModels = async (accessToken, projectId) => {
   for (const endpoint of GOOGLE_ENDPOINTS) {
     try {
       const response = await fetch(`${endpoint}/v1internal:fetchAvailableModels`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-          ...GOOGLE_HEADERS
-        },
-        body: JSON.stringify(body),
-        signal: AbortSignal.timeout(15000)
-      });
-
-      if (response.ok) {
-        return await response.json();
-      }
-    } catch {
-      continue;
-    }
-  }
-
-  return null;
-};
-
-export const fetchGoogleQuotaSummary = async (accessToken, projectId) => {
-  const body = projectId ? { project: projectId } : {};
-
-  for (const endpoint of GOOGLE_ENDPOINTS) {
-    try {
-      const response = await fetch(`${endpoint}/v1internal:retrieveUserQuotaSummary`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${accessToken}`,

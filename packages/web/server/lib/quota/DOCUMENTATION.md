@@ -31,7 +31,7 @@ asked, `/api/quota/providers` answers 500 instead of an empty list.
 
 | Provider ID | Display name | Module | Auth aliases/keys |
 | --- | --- | --- | --- |
-| `antigravity` | Antigravity | `providers/antigravity/index.js` | Antigravity accounts file (`~/.config/antigravity/accounts.json` or OS equivalent), `antigravity` in OpenCode `auth.json` |
+| `antigravity` | Antigravity | `providers/antigravity/index.js` | Antigravity accounts file (`~/.config/opencode/antigravity-accounts.json` or the `$OPENCODE_CONFIG_DIR` equivalent) |
 | `claude` | Claude | `providers/claude/` | Claude Code Keychain entry, Claude Code credentials file, OpenCode `auth.json` (`anthropic`, `claude`), `CLAUDE_CODE_OAUTH_TOKEN` |
 | `cline-pass` | ClinePass | `providers/cline-pass.js` | `cline-pass` (API key under `key` or `token`) |
 | `codex` | Codex | `providers/codex.js` | `openai`, `codex`, `chatgpt` |
@@ -107,7 +107,7 @@ Claude quota reports the subscription limits Claude Code itself is bound by, rea
 
 Antigravity reports dual-layer quota for Google Cloud Code / Antigravity IDE accounts, querying Google's `retrieveUserQuotaSummary` endpoint (falling back to `daily-cloudcode-pa.googleapis.com` and `fetchAvailableModels` flat quotaInfo).
 
-- **Windows**: captures both rolling 5-hour limits (`5h`) and 7-day weekly limits (`weekly`) across Gemini and 3P (Claude/GPT) model groups.
+- **Windows**: each model row carries its group's rolling 5-hour (`5h`) and 7-day weekly (`weekly`) limits across Gemini and 3P (Claude/GPT) model groups. The provider card itself exposes no top-level windows (`windows: {}`), matching the Google provider: one overview row could only reflect a single group and would mislead a user whose tighter limit lives in the other group.
 - **Bottleneck prioritization**: when a group's weekly limit is exhausted or more constrained than its 5-hour limit, the weekly window is prioritized first in the model's window map.
 - **Runtime parity**: `packages/web/server/lib/quota/providers/antigravity/` and `packages/vscode/src/quotaProviders.ts` (`fetchAntigravityQuota`) implement the same summary parsing, fallback chain, and bottleneck ordering — keep them in sync.
 

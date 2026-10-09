@@ -54,7 +54,6 @@ export const parseBucket = (bucket) => {
 export const transformSummary = (summaryPayload) => {
   const groups = Array.isArray(summaryPayload?.groups) ? summaryPayload.groups : [];
   const modelGroupWindows = [];
-  const topWindows = {};
 
   for (const group of groups) {
     const groupName = (group?.displayName || '').toLowerCase();
@@ -85,13 +84,10 @@ export const transformSummary = (summaryPayload) => {
     });
   }
 
-  // Top-level overview defaults to the Gemini group's dual-layer quota (or the first available group)
-  const primaryGroup = modelGroupWindows.find((g) => g.groupType === 'gemini') ?? modelGroupWindows[0];
-  if (primaryGroup) {
-    Object.assign(topWindows, primaryGroup.windows);
-  }
-
-  return { topWindows, modelGroupWindows };
+  // The card carries no top-level windows: each model row shows its own
+  // group's 5h/weekly, so a single overview row would only mislead (for
+  // example a Gemini 5h window shown for someone whose Claude limit is spent).
+  return { modelGroupWindows };
 };
 
 export const transformModels = (modelsPayload, modelGroupWindows = []) => {
